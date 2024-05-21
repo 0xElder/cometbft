@@ -1,0 +1,1 @@
+- `[config]` Move `timeout_commit` into the ABCI `ResponseFinalizeBlock`

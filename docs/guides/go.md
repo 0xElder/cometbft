@@ -369,15 +369,31 @@ func (app *KVStoreApplication) FinalizeBlock(_ context.Context, req *abcitypes.R
             }
             log.Printf("Successfully added key %s with value %s", key, value)
 
-            txs[i] = &abcitypes.ExecTxResult{}
+            // Add an event for the transaction execution.
+			// Multiple events can be emitted for a transaction, but we are adding only one event
+            txs[i] = &abcitypes.ExecTxResult{
+                Code: 0,
+                Events: []abcitypes.Event{
+                    {
+                        Type: "app",
+                        Attributes: []abcitypes.EventAttribute{
+                            {Key: "key", Value: string(key), Index: true},
+                            {Key: "value", Value: string(value), Index: true},
+                        },
+					},
+				},
+            }
         }
     }
 
     return &abcitypes.ResponseFinalizeBlock{
-        TxResults:        txs,
+        TxResults:      txs,
+        NextBlockDelay: 1 * time.Second,
     }, nil
 }
 ```
+
+`NextBlockDelay` is a delay between the time when the current block is committed and the next height is started. Normally you don't need to change the default value (1s). Please refer to the [spec](../../spec/abci/abci++_methods.md#finalizeblock) for more information.
 
 Transactions are not guaranteed to be valid when they are delivered to an application, even if they were valid when they were proposed.
 
