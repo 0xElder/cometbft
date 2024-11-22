@@ -118,7 +118,6 @@ transferBalance200FinalizeBlock12          1
 transferNodeNothingFinalizeBlock12         1
 
 ```
-
 The event number is a local variable kept by the indexer and incremented when a new event is processed.
 It is an `int64` variable and has no other semantics besides being used to associate attributes belonging to the same events within a height.
 This variable is not atomically incremented as event indexing is deterministic. **Should this ever change**, the event id generation
@@ -173,51 +172,50 @@ UTF-8 encoded strings (e.g. "transfer.sender": "Bob", "transfer.recipient":
 Example:
 
 ```go
-func (app *Application) FinalizeBlock(_ context.Context, req *types.RequestFinalizeBlock) (*types.ResponseFinalizeBlock, error) {
-
+func (app *Application) FinalizeBlock(_ context.Context, req *types.FinalizeBlockRequest) (*types.FinalizeBlockResponse, error) {
     //...
-  tx_results[0] := &types.ExecTxResult{
-			Code: CodeTypeOK,
-			// With every transaction we can emit a series of events. To make it simple, we just emit the same events.
-			Events: []types.Event{
-				{
-					Type: "app",
-					Attributes: []types.EventAttribute{
-						{Key: "creator", Value: "Cosmoshi Netowoko", Index: true},
-						{Key: "key", Value: key, Index: true},
-						{Key: "index_key", Value: "index is working", Index: true},
-						{Key: "noindex_key", Value: "index is working", Index: false},
-					},
-				},
-				{
-					Type: "app",
-					Attributes: []types.EventAttribute{
-						{Key: "creator", Value: "Cosmoshi", Index: true},
-						{Key: "key", Value: value, Index: true},
-						{Key: "index_key", Value: "index is working", Index: true},
-						{Key: "noindex_key", Value: "index is working", Index: false},
-					},
-				},
-			},
-		}
+    tx_results[0] := &types.ExecTxResult{
+        Code: CodeTypeOK,
+        // With every transaction we can emit a series of events. To make it simple, we just emit the same events.
+        Events: []types.Event{
+            {
+                Type: "app",
+                Attributes: []types.EventAttribute{
+                    {Key: "creator", Value: "Cosmoshi Netowoko", Index: true},
+                    {Key: "key", Value: key, Index: true},
+                    {Key: "index_key", Value: "index is working", Index: true},
+                    {Key: "noindex_key", Value: "index is working", Index: false},
+                },
+            },
+            {
+                Type: "app",
+                Attributes: []types.EventAttribute{
+                    {Key: "creator", Value: "Cosmoshi", Index: true},
+                    {Key: "key", Value: value, Index: true},
+                    {Key: "index_key", Value: "index is working", Index: true},
+                    {Key: "noindex_key", Value: "index is working", Index: false},
+                },
+            },
+        },
+    }
 
     block_events = []types.Event{
-			{
-				Type: "loan",
-				Attributes: []types.EventAttribute{
-					{	Key:   "account_no", Value: "1", Index: true},
-					{ Key:   "amount", Value: "200", Index: true },
-				},
-			},
-			{
-				Type: "loan",
-				Attributes: []types.EventAttribute{
-					{ Key:   "account_no", Value: "2",	Index: true },
-					{ Key:   "amount", Value: "300", Index: true},
-				},
-			},
-		}
-    return &types.ResponseFinalizeBlock{TxResults: tx_results, Events: block_events}
+        {
+            Type: "loan",
+            Attributes: []types.EventAttribute{
+                {Key: "account_no", Value: "1", Index: true},
+                {Key: "amount", Value: "200", Index: true},
+            },
+        },
+        {
+            Type: "loan",
+            Attributes: []types.EventAttribute{
+                {Key: "account_no", Value: "2", Index: true},
+                {Key: "amount", Value: "300", Index: true},
+            },
+        },
+    }
+    return &types.FinalizeBlockResponse{TxResults: tx_results, Events: block_events, NextBlockDelay: 1 * time.Second}, nil
 }
 ```
 
@@ -266,16 +264,13 @@ curl "localhost:26657/block_search?query=\"block.height > 10\""
 ```
 
 
-Storing the event sequence was introduced in CometBFT 0.34.26. Before that, up
-until Tendermint Core 0.34.26, the event sequence was not stored in the kvstore
-and events were stored only by height. That means that queries returned blocks
-and transactions whose event attributes match within the height but can match
-across different events on that height.
-
-This behavior was fixed with CometBFT 0.34.26+. However, if the data was
-indexed with earlier versions of Tendermint Core and not re-indexed, that data
-will be queried as if all the attributes within a height occurred within the
-same event.
+Storing the event sequence was introduced in CometBFT 0.34.26. Before that, up until Tendermint Core 0.34.26,
+the event sequence was not stored in the kvstore and events were stored only by height. That means that queries
+returned blocks and transactions whose event attributes match within the height but can match across different
+events on that height.
+This behavior was fixed with CometBFT 0.34.26+. However, if the data was indexed with earlier versions of
+Tendermint Core and not re-indexed, that data will be queried as if all the attributes within a height
+occurred within the same event.
 
 ## Event attribute value types
 
@@ -283,13 +278,10 @@ Users can use anything as an event value. However, if the event attribute value
 is a number, the following needs to be taken into account:
 
 - Negative numbers will not be properly retrieved when querying the indexer.
-- Event values are converted to big floats (from the `big/math` package). The
-  precision of the floating point number is set to the bit length of the
-  integer it is supposed to represent, so that there is no loss of information
-  due to insufficient precision. This was not present before CometBFT v0.38.x
-  and all float values were ignored.
+- Event values are converted to big floats (from the `big/math` package). The precision of the floating point number is set to the bit length
+of the integer it is supposed to represent, so that there is no loss of information due to insufficient precision. This was not present before CometBFT v0.38.x and all float values were ignored.
 - As of CometBFT v0.38.x, queries can contain floating point numbers as well.
-- Note that comparing to floats can be imprecise with a high number of decimals.
+- Note that comparing to floats can be imprecise with a high number of decimals. 
 
 ## Event type and attribute key format
 
