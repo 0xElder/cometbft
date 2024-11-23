@@ -234,27 +234,29 @@ func (blockExec *BlockExecutor) applyBlock(state State, blockID types.BlockID, b
 	})
 	endTime := time.Now().UnixNano()
 
-	// In the following code, nextBlockDelay is being set based on block time
-	// taken from consensus parameters and time spend since the block.Time.
-	consensusParams, err := blockExec.Store().LoadConsensusParams(int64(block.Height - 1))
-	if err != nil {
-		blockExec.logger.Error("error in fetching the consensus params at height %d", int64(block.Height-1), "err", err)
-		return state, err
-	}
-
-	blockTime := consensusParams.Block.BlockTime
-	nextBlockDelay := 10 * time.Millisecond
-
-	currentTime := time.Now()
-
-	if currentTime.After(block.Time) {
-		difference := blockTime - (currentTime.Sub(block.Time))
-		if difference > 0 {
-			nextBlockDelay = difference
+	if block.Height != 0 {
+		// In the following code, nextBlockDelay is being set based on block time
+		// taken from consensus parameters and time spend since the block.Time.
+		consensusParams, err := blockExec.Store().LoadConsensusParams(int64(block.Height - 1))
+		if err != nil {
+			blockExec.logger.Error("error in fetching the consensus params at height %d", int64(block.Height-1), "err", err)
+			return state, err
 		}
-	}
 
-	abciResponse.NextBlockDelay = nextBlockDelay
+		blockTime := consensusParams.Block.BlockTime
+		nextBlockDelay := 10 * time.Millisecond
+
+		currentTime := time.Now()
+
+		if currentTime.After(block.Time) {
+			difference := blockTime - (currentTime.Sub(block.Time))
+			if difference > 0 {
+				nextBlockDelay = difference
+			}
+		}
+
+		abciResponse.NextBlockDelay = nextBlockDelay
+	}
 
 	blockExec.metrics.BlockProcessingTime.Observe(float64(endTime-startTime) / 1000000)
 	if err != nil {
