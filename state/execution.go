@@ -246,7 +246,7 @@ func (blockExec *BlockExecutor) applyBlock(state State, blockID types.BlockID, b
 		blockTime := consensusParams.Block.BlockTime
 		nextBlockDelay := 10 * time.Millisecond
 
-		currentTime := time.Now()
+		currentTime := time.Now().UTC()
 
 		if currentTime.After(block.Time) {
 			difference := blockTime - (currentTime.Sub(block.Time))
