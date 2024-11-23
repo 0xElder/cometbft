@@ -234,7 +234,7 @@ func (blockExec *BlockExecutor) applyBlock(state State, blockID types.BlockID, b
 	})
 	endTime := time.Now().UnixNano()
 
-	if block.Height <= 1 {
+	if block.Height > 1 {
 		// In the following code, nextBlockDelay is being set based on block time
 		// taken from consensus parameters and time spend since the block.Time.
 		consensusParams, err := blockExec.Store().LoadConsensusParams(int64(block.Height - 1))
