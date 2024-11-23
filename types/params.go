@@ -43,8 +43,9 @@ type ConsensusParams struct {
 // BlockParams define limits on the block size and gas plus minimum time
 // between blocks.
 type BlockParams struct {
-	MaxBytes int64 `json:"max_bytes"`
-	MaxGas   int64 `json:"max_gas"`
+	MaxBytes  int64         `json:"max_bytes"`
+	MaxGas    int64         `json:"max_gas"`
+	BlockTime time.Duration `json:"block_time"`
 }
 
 // EvidenceParams determine how we handle evidence of malfeasance.
@@ -96,8 +97,9 @@ func DefaultConsensusParams() *ConsensusParams {
 // DefaultBlockParams returns a default BlockParams.
 func DefaultBlockParams() BlockParams {
 	return BlockParams{
-		MaxBytes: 22020096, // 21MB
-		MaxGas:   -1,
+		MaxBytes:  22020096, // 21MB
+		MaxGas:    -1,
+		BlockTime: 2 * time.Second,
 	}
 }
 
@@ -151,6 +153,12 @@ func (params ConsensusParams) ValidateBasic() error {
 
 			params.Block.MaxBytes)
 	}
+
+	if params.Block.BlockTime.Abs() <= 0 {
+		return fmt.Errorf("block.BlockTime must be non zero Got %d",
+			params.Block.BlockTime)
+	}
+
 	if params.Block.MaxBytes > MaxBlockSizeBytes {
 		return fmt.Errorf("block.MaxBytes is too big. %d > %d",
 			params.Block.MaxBytes, MaxBlockSizeBytes)
@@ -302,6 +310,7 @@ func (params ConsensusParams) Update(params2 *cmtproto.ConsensusParams) Consensu
 	if params2.Block != nil {
 		res.Block.MaxBytes = params2.Block.MaxBytes
 		res.Block.MaxGas = params2.Block.MaxGas
+		res.Block.BlockTime = params.Block.BlockTime
 	}
 	if params2.Evidence != nil {
 		res.Evidence.MaxAgeNumBlocks = params2.Evidence.MaxAgeNumBlocks
@@ -325,8 +334,9 @@ func (params ConsensusParams) Update(params2 *cmtproto.ConsensusParams) Consensu
 func (params *ConsensusParams) ToProto() cmtproto.ConsensusParams {
 	return cmtproto.ConsensusParams{
 		Block: &cmtproto.BlockParams{
-			MaxBytes: params.Block.MaxBytes,
-			MaxGas:   params.Block.MaxGas,
+			MaxBytes:  params.Block.MaxBytes,
+			MaxGas:    params.Block.MaxGas,
+			BlockTime: params.Block.BlockTime,
 		},
 		Evidence: &cmtproto.EvidenceParams{
 			MaxAgeNumBlocks: params.Evidence.MaxAgeNumBlocks,
@@ -348,8 +358,9 @@ func (params *ConsensusParams) ToProto() cmtproto.ConsensusParams {
 func ConsensusParamsFromProto(pbParams cmtproto.ConsensusParams) ConsensusParams {
 	c := ConsensusParams{
 		Block: BlockParams{
-			MaxBytes: pbParams.Block.MaxBytes,
-			MaxGas:   pbParams.Block.MaxGas,
+			MaxBytes:  pbParams.Block.MaxBytes,
+			MaxGas:    pbParams.Block.MaxGas,
+			BlockTime: pbParams.Block.BlockTime,
 		},
 		Evidence: EvidenceParams{
 			MaxAgeNumBlocks: pbParams.Evidence.MaxAgeNumBlocks,

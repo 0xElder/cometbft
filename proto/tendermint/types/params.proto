@@ -28,6 +28,10 @@ message BlockParams {
   int64 max_gas = 2;
 
   reserved 3;  // was TimeIotaMs see https://github.com/tendermint/tendermint/pull/5792
+
+  // block time
+  google.protobuf.Duration block_time =4 
+  [(gogoproto.nullable) = false, (gogoproto.stdduration) = true];
 }
 
 // EvidenceParams determine how we handle evidence of malfeasance.
