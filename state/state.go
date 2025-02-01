@@ -81,6 +81,9 @@ type State struct {
 	// delay between the time when this block is committed and the next height is started.
 	// previously `timeout_commit` in config.toml
 	NextBlockDelay time.Duration
+
+	// genesis time
+	GenesisTime time.Time
 }
 
 // Copy makes a copy of the State for mutating.
@@ -108,6 +111,7 @@ func (state State) Copy() State {
 		LastResultsHash: state.LastResultsHash,
 
 		NextBlockDelay: state.NextBlockDelay,
+		GenesisTime:    state.GenesisTime,
 	}
 }
 
@@ -177,6 +181,7 @@ func (state *State) ToProto() (*cmtstate.State, error) {
 	sm.LastResultsHash = state.LastResultsHash
 	sm.AppHash = state.AppHash
 	sm.NextBlockDelay = state.NextBlockDelay
+	sm.GenesisTime = state.GenesisTime
 
 	return sm, nil
 }
@@ -229,6 +234,7 @@ func FromProto(pb *cmtstate.State) (*State, error) { //nolint:golint
 	state.LastResultsHash = pb.LastResultsHash
 	state.AppHash = pb.AppHash
 	state.NextBlockDelay = pb.NextBlockDelay
+	state.GenesisTime = pb.GenesisTime
 
 	return state, nil
 }
@@ -362,5 +368,6 @@ func MakeGenesisState(genDoc *types.GenesisDoc) (State, error) {
 
 		// NextBlockDelay is set to 0 because the genesis block is committed.
 		NextBlockDelay: 0,
+		GenesisTime:    genDoc.GenesisTime,
 	}, nil
 }
