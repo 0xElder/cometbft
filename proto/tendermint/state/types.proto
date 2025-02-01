@@ -102,4 +102,7 @@ message State {
     (gogoproto.nullable) = false, 
     (gogoproto.stdduration) = true
   ];
+
+  google.protobuf.Timestamp genesis_time = 16
+  [(gogoproto.nullable) = false, (gogoproto.stdtime) = true];
 }
