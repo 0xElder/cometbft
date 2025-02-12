@@ -116,7 +116,7 @@ func TestCalculateDelayWhenDiffIsZero(t *testing.T) {
 	delay := state.CalculateDelay(blockStore, currentBlock)
 
 	// ideal next block delay (assuming 10% of block time lost in execution and network delays)
-	idealExpectedDelay := blockTime - blockTime/10
+	idealExpectedDelay := blockTime - blockTime/state.MsgProcDelayRatio
 
 	assert.Equal(t, idealExpectedDelay, delay)
 }
@@ -138,10 +138,10 @@ func TestCalculateDelayWhenDiffIsMorePositiveThanMaxDeflection(t *testing.T) {
 	}
 
 	// ideal next block delay (assuming 10% of block time lost in execution and network delays)
-	idealExpectedDelay := blockTime - blockTime/10
+	idealExpectedDelay := blockTime - blockTime/state.MsgProcDelayRatio
 
 	// maxdepliction is 20% of idealExpectedDelay
-	maxDeflection := idealExpectedDelay / 5
+	maxDeflection := idealExpectedDelay / state.DeflectionRatio
 
 	height := int64(10)
 	addedDiff := maxDeflection + maxDeflection/2
@@ -183,10 +183,10 @@ func TestCalculateDelayWhenDiffIsLessPositiveThanMaxDeflection(t *testing.T) {
 	}
 
 	// ideal next block delay (assuming 10% of block time lost in execution and network delays)
-	idealExpectedDelay := blockTime - blockTime/10
+	idealExpectedDelay := blockTime - blockTime/state.MsgProcDelayRatio
 
 	// maxdepliction is 20% of idealExpectedDelay
-	maxDeflection := idealExpectedDelay / 5
+	maxDeflection := idealExpectedDelay / state.DeflectionRatio
 
 	height := int64(10)
 	addedDiff := maxDeflection - maxDeflection/2
@@ -228,10 +228,10 @@ func TestCalculateDelayWhenDiffIsMoreNegativeThanMaxDeflection(t *testing.T) {
 	}
 
 	// ideal next block delay (assuming 10% of block time lost in execution and network delays)
-	idealExpectedDelay := blockTime - blockTime/10
+	idealExpectedDelay := blockTime - blockTime/state.MsgProcDelayRatio
 
 	// maxdepliction is 20% of idealExpectedDelay
-	maxDeflection := idealExpectedDelay / 5
+	maxDeflection := idealExpectedDelay / state.DeflectionRatio
 
 	height := int64(10)
 	addedDiff := -1 * (maxDeflection + maxDeflection/2)
@@ -273,10 +273,10 @@ func TestCalculateDelayWhenDiffIsLessNegativeThanMaxDeflection(t *testing.T) {
 	}
 
 	// ideal next block delay (assuming 10% of block time lost in execution and network delays)
-	idealExpectedDelay := blockTime - blockTime/10
+	idealExpectedDelay := blockTime - blockTime/state.MsgProcDelayRatio
 
 	// maxdepliction is 20% of idealExpectedDelay
-	maxDeflection := idealExpectedDelay / 5
+	maxDeflection := idealExpectedDelay / state.DeflectionRatio
 
 	height := int64(10)
 	addedDiff := -1 * (maxDeflection - maxDeflection/2)

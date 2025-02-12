@@ -7,6 +7,14 @@ import (
 )
 
 // This file contains utility functions for the state package.
+const (
+	// msgProcDelayRatio is the ratio of block time to message processing delay
+	// assuming block time lost in execution and network delays
+	MsgProcDelayRatio = 10
+
+	// deflectionRation is the ratio of the ideal block time to the threshold for the difference
+	DeflectionRatio = 5
+)
 
 func CalculateDelay(store Store, currentBlock *types.Block) time.Duration {
 	// load the state from the store
@@ -24,8 +32,9 @@ func CalculateDelay(store Store, currentBlock *types.Block) time.Duration {
 	// get the block time
 	blockTime := consensusParams.Block.BlockTime
 
-	// ideal next block delay (assuming 10% of block time lost in execution and network delays)
-	idealNextBlockDelay := blockTime - blockTime/10
+	msgProcDelay := blockTime / MsgProcDelayRatio
+
+	idealNextBlockDelay := blockTime - msgProcDelay
 
 	// get the genesis time, it is a time for the  block=1
 	genesisTime := state.GenesisTime
@@ -43,11 +52,11 @@ func CalculateDelay(store Store, currentBlock *types.Block) time.Duration {
 	// calculate the difference between the expected duration and the got duration
 	diff := gotDuration - expectedDuration
 
-	// calculate the threshold for the difference
-	threshold := idealNextBlockDelay / 5
+	// calculate the threshold for the difference using deflection ratio
+	threshold := idealNextBlockDelay / DeflectionRatio
 
-	// check if the absolute value of the difference is more than 20% of the ideal block delay
-	if diff.Abs() > idealNextBlockDelay/5 {
+	// check if the absolute value of the difference is more than the threshold
+	if diff.Abs() > threshold {
 		if diff > 0 {
 			return idealNextBlockDelay - threshold
 		} else {

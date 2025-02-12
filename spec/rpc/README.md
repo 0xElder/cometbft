@@ -594,6 +594,7 @@ curl -X POST https://localhost:26657 -d "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\
       "block": {
         "max_bytes": "22020096",
         "max_gas": "1000",
+        "block_time": "2000000000",
         "time_iota_ms": "1000"
       },
       "evidence": {
@@ -771,6 +772,7 @@ curl -X POST https://localhost:26657 -d "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\
         "block": {
           "max_bytes": "22020096",
           "max_gas": "1000",
+          "block_time": "2000000000",
           "time_iota_ms": "1000"
         },
         "evidence": {
@@ -871,6 +873,7 @@ curl -X POST https://localhost:26657 -d "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\
       "block": {
         "max_bytes": "22020096",
         "max_gas": "1000",
+        "block_time": "2000000000",
         "time_iota_ms": "1000"
       },
       "evidence": {

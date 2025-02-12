@@ -60,8 +60,9 @@ func makeParams(
 ) ConsensusParams {
 	return ConsensusParams{
 		Block: BlockParams{
-			MaxBytes: blockBytes,
-			MaxGas:   blockGas,
+			MaxBytes:  blockBytes,
+			MaxGas:    blockGas,
+			BlockTime: 1,
 		},
 		Evidence: EvidenceParams{
 			MaxAgeNumBlocks: evidenceAge,
