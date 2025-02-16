@@ -233,6 +233,9 @@ func (blockExec *BlockExecutor) applyBlock(state State, blockID types.BlockID, b
 		Txs:                block.Txs.ToSliceOfBytes(),
 	})
 	endTime := time.Now().UnixNano()
+
+	abciResponse.NextBlockDelay = calculateDelay(blockExec.store, block)
+
 	blockExec.metrics.BlockProcessingTime.Observe(float64(endTime-startTime) / 1000000)
 	if err != nil {
 		blockExec.logger.Error("error in proxyAppConn.FinalizeBlock", "err", err)
@@ -671,6 +674,7 @@ func updateState(
 		LastResultsHash:                  TxResultsHash(abciResponse.TxResults),
 		AppHash:                          nil,
 		NextBlockDelay:                   abciResponse.NextBlockDelay,
+		GenesisTime:                      state.GenesisTime,
 	}, nil
 }
 

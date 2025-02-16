@@ -93,6 +93,7 @@ definition](https://github.com/cometbft/cometbft/blob/v0.38.x/types/genesis.go))
   "consensus_params": {
     "block": {
       "max_bytes": "22020096",
+      "block_time": "2000000000",
       "max_gas": "-1",
     },
     "evidence": {

@@ -2765,6 +2765,7 @@ components:
           required:
             - "max_bytes"
             - "max_gas"
+            - "block_time"
             - "time_iota_ms"
           properties:
             max_bytes:

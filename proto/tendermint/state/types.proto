@@ -98,4 +98,7 @@ message State {
   // delay between the time when this block is committed and the next height is started.
   // previously `timeout_commit` in config.toml
   google.protobuf.Duration next_block_delay = 15 [(gogoproto.nullable) = false, (gogoproto.stdduration) = true];
+
+  // the timestamp of genesis creation
+  google.protobuf.Timestamp genesis_time = 16 [(gogoproto.nullable) = false, (gogoproto.stdtime) = true];
 }

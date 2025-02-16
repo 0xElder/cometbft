@@ -23,24 +23,27 @@ func TestConsensusParamsValidation(t *testing.T) {
 		valid  bool
 	}{
 		// test block params
-		0: {makeParams(1, 0, 2, 0, valEd25519, 0), true},
-		1: {makeParams(0, 0, 2, 0, valEd25519, 0), false},
-		2: {makeParams(47*1024*1024, 0, 2, 0, valEd25519, 0), true},
-		3: {makeParams(10, 0, 2, 0, valEd25519, 0), true},
-		4: {makeParams(100*1024*1024, 0, 2, 0, valEd25519, 0), true},
-		5: {makeParams(101*1024*1024, 0, 2, 0, valEd25519, 0), false},
-		6: {makeParams(1024*1024*1024, 0, 2, 0, valEd25519, 0), false},
+		0: {makeParams(1, 0, 2, 2, 0, valEd25519, 0), true},
+		1: {makeParams(0, 0, 2, 2, 0, valEd25519, 0), false},
+		2: {makeParams(47*1024*1024, 0, 2, 2, 0, valEd25519, 0), true},
+		3: {makeParams(10, 0, 2, 2, 0, valEd25519, 0), true},
+		4: {makeParams(100*1024*1024, 0, 2, 2, 0, valEd25519, 0), true},
+		5: {makeParams(101*1024*1024, 0, 2, 2, 0, valEd25519, 0), false},
+		6: {makeParams(1024*1024*1024, 0, 2, 2, 0, valEd25519, 0), false},
+		7: {makeParams(47*1024*1024, 0, 0, 2, 0, valEd25519, 0), true},
+		8: {makeParams(47*1024*1024, 0, -1, 2, 0, valEd25519, 0), false},
+
 		// test evidence params
-		7:  {makeParams(1, 0, 0, 0, valEd25519, 0), false},
-		8:  {makeParams(1, 0, 2, 2, valEd25519, 0), false},
-		9:  {makeParams(1000, 0, 2, 1, valEd25519, 0), true},
-		10: {makeParams(1, 0, -1, 0, valEd25519, 0), false},
+		9:  {makeParams(1, 0, 2, 0, 0, valEd25519, 0), false},
+		10: {makeParams(1, 0, 2, 2, 2, valEd25519, 0), false},
+		11: {makeParams(1000, 0, 2, 2, 1, valEd25519, 0), true},
+		12: {makeParams(1, 0, 2, -1, 0, valEd25519, 0), false},
 		// test no pubkey type provided
-		11: {makeParams(1, 0, 2, 0, []string{}, 0), false},
+		13: {makeParams(1, 0, 2, 2, 0, []string{}, 0), false},
 		// test invalid pubkey type provided
-		12: {makeParams(1, 0, 2, 0, []string{"potatoes make good pubkeys"}, 0), false},
-		13: {makeParams(-1, 0, 2, 0, valEd25519, 0), true},
-		14: {makeParams(-2, 0, 2, 0, valEd25519, 0), false},
+		14: {makeParams(1, 0, 2, 2, 0, []string{"potatoes make good pubkeys"}, 0), false},
+		15: {makeParams(-1, 0, 2, 2, 0, valEd25519, 0), true},
+		16: {makeParams(-2, 0, 2, 2, 0, valEd25519, 0), false},
 	}
 	for i, tc := range testCases {
 		if tc.valid {
@@ -53,6 +56,7 @@ func TestConsensusParamsValidation(t *testing.T) {
 
 func makeParams(
 	blockBytes, blockGas int64,
+	blockTime time.Duration,
 	evidenceAge int64,
 	maxEvidenceBytes int64,
 	pubkeyTypes []string,
@@ -60,8 +64,9 @@ func makeParams(
 ) ConsensusParams {
 	return ConsensusParams{
 		Block: BlockParams{
-			MaxBytes: blockBytes,
-			MaxGas:   blockGas,
+			MaxBytes:  blockBytes,
+			MaxGas:    blockGas,
+			BlockTime: blockTime,
 		},
 		Evidence: EvidenceParams{
 			MaxAgeNumBlocks: evidenceAge,
@@ -79,14 +84,14 @@ func makeParams(
 
 func TestConsensusParamsHash(t *testing.T) {
 	params := []ConsensusParams{
-		makeParams(4, 2, 3, 1, valEd25519, 0),
-		makeParams(1, 4, 3, 1, valEd25519, 0),
-		makeParams(1, 2, 4, 1, valEd25519, 0),
-		makeParams(2, 5, 7, 1, valEd25519, 0),
-		makeParams(1, 7, 6, 1, valEd25519, 0),
-		makeParams(9, 5, 4, 1, valEd25519, 0),
-		makeParams(7, 8, 9, 1, valEd25519, 0),
-		makeParams(4, 6, 5, 1, valEd25519, 0),
+		makeParams(4, 2, 2, 3, 1, valEd25519, 0),
+		makeParams(1, 4, 2, 3, 1, valEd25519, 0),
+		makeParams(1, 2, 2, 4, 1, valEd25519, 0),
+		makeParams(2, 5, 2, 7, 1, valEd25519, 0),
+		makeParams(1, 7, 2, 6, 1, valEd25519, 0),
+		makeParams(9, 5, 2, 4, 1, valEd25519, 0),
+		makeParams(7, 8, 2, 9, 1, valEd25519, 0),
+		makeParams(4, 6, 2, 5, 1, valEd25519, 0),
 	}
 
 	hashes := make([][]byte, len(params))
@@ -112,17 +117,18 @@ func TestConsensusParamsUpdate(t *testing.T) {
 	}{
 		// empty updates
 		{
-			makeParams(1, 2, 3, 0, valEd25519, 0),
+			makeParams(1, 2, 1, 3, 0, valEd25519, 0),
 			&cmtproto.ConsensusParams{},
-			makeParams(1, 2, 3, 0, valEd25519, 0),
+			makeParams(1, 2, 1, 3, 0, valEd25519, 0),
 		},
 		// fine updates
 		{
-			makeParams(1, 2, 3, 0, valEd25519, 0),
+			makeParams(1, 2, 25, 3, 0, valEd25519, 0),
 			&cmtproto.ConsensusParams{
 				Block: &cmtproto.BlockParams{
-					MaxBytes: 100,
-					MaxGas:   200,
+					MaxBytes:  100,
+					MaxGas:    200,
+					BlockTime: 250,
 				},
 				Evidence: &cmtproto.EvidenceParams{
 					MaxAgeNumBlocks: 300,
@@ -133,7 +139,7 @@ func TestConsensusParamsUpdate(t *testing.T) {
 					PubKeyTypes: valSecp256k1,
 				},
 			},
-			makeParams(100, 200, 300, 50, valSecp256k1, 0),
+			makeParams(100, 200, 250, 300, 50, valSecp256k1, 0),
 		},
 	}
 
@@ -143,7 +149,7 @@ func TestConsensusParamsUpdate(t *testing.T) {
 }
 
 func TestConsensusParamsUpdate_AppVersion(t *testing.T) {
-	params := makeParams(1, 2, 3, 0, valEd25519, 0)
+	params := makeParams(1, 2, 25, 3, 0, valEd25519, 0)
 
 	assert.EqualValues(t, 0, params.Version.App)
 
@@ -210,7 +216,7 @@ func TestConsensusParamsUpdate_VoteExtensionsEnableHeight(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(*testing.T) {
-			initialParams := makeParams(1, 0, 2, 0, valEd25519, tc.from)
+			initialParams := makeParams(1, 0, 2, 2, 0, valEd25519, tc.from)
 			update := &cmtproto.ConsensusParams{}
 			if tc.to == nilTest {
 				update.Abci = nil
@@ -230,14 +236,14 @@ func TestConsensusParamsUpdate_VoteExtensionsEnableHeight(t *testing.T) {
 
 func TestProto(t *testing.T) {
 	params := []ConsensusParams{
-		makeParams(4, 2, 3, 1, valEd25519, 1),
-		makeParams(1, 4, 3, 1, valEd25519, 1),
-		makeParams(1, 2, 4, 1, valEd25519, 1),
-		makeParams(2, 5, 7, 1, valEd25519, 1),
-		makeParams(1, 7, 6, 1, valEd25519, 1),
-		makeParams(9, 5, 4, 1, valEd25519, 1),
-		makeParams(7, 8, 9, 1, valEd25519, 1),
-		makeParams(4, 6, 5, 1, valEd25519, 1),
+		makeParams(4, 2, 2, 3, 1, valEd25519, 1),
+		makeParams(1, 4, 2, 3, 1, valEd25519, 1),
+		makeParams(1, 2, 2, 4, 1, valEd25519, 1),
+		makeParams(2, 5, 2, 7, 1, valEd25519, 1),
+		makeParams(1, 7, 2, 6, 1, valEd25519, 1),
+		makeParams(9, 5, 2, 4, 1, valEd25519, 1),
+		makeParams(7, 8, 2, 9, 1, valEd25519, 1),
+		makeParams(4, 6, 2, 5, 1, valEd25519, 1),
 	}
 
 	for i := range params {
