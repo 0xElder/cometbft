@@ -878,6 +878,8 @@ func buildTMStateFromChain(
 			require.NoError(t, stateStore.SaveFinalizeBlockResponse(lastHeight, response))
 			return true
 		})).Return(nil)
+		dummyStateStore.On("Load").Return(state, nil)
+		dummyStateStore.On("LoadConsensusParams", mock.Anything).Return(state.ConsensusParams, nil)
 
 		// apply the final block to a state copy so we can
 		// get the right next appHash but keep the state back

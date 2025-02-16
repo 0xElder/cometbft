@@ -52,12 +52,14 @@ func TestByzantinePrevoteEquivocation(t *testing.T) {
 	for i := 0; i < nValidators; i++ {
 		logger := consensusLogger().With("test", "byzantine", "validator", i)
 		stateDB := dbm.NewMemDB() // each state needs its own db
-		stateStore := sm.NewStore(stateDB, sm.StoreOptions{
-			DiscardABCIResponses: false,
-		})
+		stateStore := sm.NewStore(stateDB, sm.StoreOptions{DiscardABCIResponses: false})
 		state, _ := stateStore.LoadFromDBOrGenesisDoc(genDoc)
+		state.ConsensusParams.Block.BlockTime = 0
+
 		thisConfig := ResetConfig(fmt.Sprintf("%s_%d", testName, i))
 		defer os.RemoveAll(thisConfig.RootDir)
+		thisConfig.Consensus.TimeoutCommit = 0
+
 		ensureDir(path.Dir(thisConfig.Consensus.WalFile()), 0o700) // dir for wal
 		app := appFunc()
 		vals := types.TM2PB.ValidatorUpdates(state.Validators)

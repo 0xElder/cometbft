@@ -53,6 +53,7 @@ func WALGenerateNBlocks(t *testing.T, wr io.Writer, numBlocks int, config *cfg.C
 	if err != nil {
 		return fmt.Errorf("failed to make genesis state: %w", err)
 	}
+	state.ConsensusParams.Block.BlockTime = 0
 	state.Version.Consensus.App = kvstore.AppVersion
 	if err = stateStore.Save(state); err != nil {
 		t.Error(err)

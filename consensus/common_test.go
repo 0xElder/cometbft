@@ -777,11 +777,14 @@ func randConsensusNet(t *testing.T, nValidators int, testName string, tickerFunc
 			DiscardABCIResponses: false,
 		})
 		state, _ := stateStore.LoadFromDBOrGenesisDoc(genDoc)
+		state.ConsensusParams.Block.BlockTime = 0
+
 		thisConfig := ResetConfig(fmt.Sprintf("%s_%d", testName, i))
 		configRootDirs = append(configRootDirs, thisConfig.RootDir)
 		for _, opt := range configOpts {
 			opt(thisConfig)
 		}
+		thisConfig.Consensus.TimeoutCommit = 0
 		ensureDir(filepath.Dir(thisConfig.Consensus.WalFile()), 0o700) // dir for wal
 		app := appFunc()
 		vals := types.TM2PB.ValidatorUpdates(state.Validators)
@@ -821,7 +824,11 @@ func randConsensusNetWithPeers(
 		})
 		t.Cleanup(func() { _ = stateStore.Close() })
 		state, _ := stateStore.LoadFromDBOrGenesisDoc(genDoc)
+		state.ConsensusParams.Block.BlockTime = 0
+
 		thisConfig := ResetConfig(fmt.Sprintf("%s_%d", testName, i))
+		thisConfig.Consensus.TimeoutCommit = 0
+
 		configRootDirs = append(configRootDirs, thisConfig.RootDir)
 		ensureDir(filepath.Dir(thisConfig.Consensus.WalFile()), 0o700) // dir for wal
 		if i == 0 {

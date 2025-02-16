@@ -30,6 +30,8 @@ func TestMempoolNoProgressUntilTxsAvailable(t *testing.T) {
 	defer os.RemoveAll(config.RootDir)
 	config.Consensus.CreateEmptyBlocks = false
 	state, privVals := randGenesisState(1, false, 10, nil)
+	state.ConsensusParams.Block.BlockTime = 0
+
 	app := kvstore.NewInMemoryApplication()
 	resp, err := app.Info(context.Background(), proxy.RequestInfo)
 	require.NoError(t, err)
